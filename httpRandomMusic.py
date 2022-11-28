@@ -4,7 +4,7 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v1.0
+# v1.2
 
 import os, random, urllib, posixpath, shutil
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -60,10 +60,10 @@ class meHandler(BaseHTTPRequestHandler):
         global fileIndex
         print(self.path)
         if self.path == '/':
+            self.return302(fileList[fileIndex])
             fileIndex += 1
             if fileIndex >= len(fileList):
                 fileIndex = 0
-            self.return302(fileList[fileIndex])
         elif self.path == '/random':
             updateFileList()
             random.shuffle(fileList)
