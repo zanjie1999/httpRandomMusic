@@ -1,8 +1,8 @@
-# httpRandonMusic
+# httpRandomMusic
 本项目能让你的小爱音箱播放局域网NAS上的音乐  
 因为小爱play增强版的BES2300太垃圾了，曲库没一首歌能够完整放完的
 ### 如何部署
-在你的nas上安装Python3，打开`httpRandonMusic.py`，编辑`fileDir`变量，填写你存放音乐的文件夹的完整路径  
+在你的nas上安装Python3，下载并打开`httpRandomMusic.py`，编辑`fileDir`变量，填写你存放音乐的文件夹的完整路径  
 如果你是Windows服务器，那你的路径可能是`E:\音乐`的，要把`\`换成`/`  
 然后修改路由器的hosts，加入这样一行
 ```
@@ -12,9 +12,9 @@
 然后启动程序
 ```
 # 正常是这样启动的
-python3 httpRandonMusic.py
+python3 httpRandomMusic.py
 # Windows可能是这样的
-python httpRandonMusic.py
+python httpRandomMusic.py
 ```
 
 ### 如何使用
