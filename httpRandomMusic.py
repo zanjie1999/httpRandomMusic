@@ -64,7 +64,7 @@ class meHandler(BaseHTTPRequestHandler):
             if fileIndex >= len(fileList):
                 fileIndex = 0
             self.return302(fileList[fileIndex])
-        elif self.path == '/randon':
+        elif self.path == '/random':
             updateFileList()
             random.shuffle(fileList)
             self.return302(fileList[0])
