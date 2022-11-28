@@ -9,6 +9,13 @@
 你服务器的ip op.lan
 ```
 就算你使用别的方式也好，只要将`op.lan`这个不存在的域名在你局域网解析到你的服务器就行了
+然后启动程序
+```
+# 正常是这样启动的
+python3 httpRandonMusic.py
+# Windows可能是这样的
+python httpRandonMusic.py
+```
 
 ### 如何使用
 ```
