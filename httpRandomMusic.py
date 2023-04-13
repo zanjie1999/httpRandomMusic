@@ -4,7 +4,7 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v2.0
+# v2.1
 
 import os, random, urllib, posixpath, shutil, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -85,7 +85,7 @@ class meHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-type", 'audio/mpeg')
                 if ffmpeg and path.lower().split('.')[-1] not in ['wav','mp3']:
                     self.end_headers()
-                    pipe = subprocess.Popen(['ffmpeg', '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
+                    pipe = subprocess.Popen([ffmpeg, '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
                     try:
                         shutil.copyfileobj(pipe.stdout, self.wfile)
                     finally:
