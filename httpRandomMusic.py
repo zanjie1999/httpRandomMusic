@@ -4,14 +4,21 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v1.2
+# v2.0
 
-import os, random, urllib, posixpath, shutil
+import os, random, urllib, posixpath, shutil, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
+# 端口号
 port = 65533
+
+# 存音乐的目录
 fileDir = '/data/音乐/' 
-# fileDir = 'E:/音乐' 
+fileDir = '/Users/sparkle/Music/网易云音乐' 
+
+# 实时转码需要依赖ffmpeg的路径 如果为空就不转码
+ffmpeg = 'ffmpeg'
+
 
 fileList = None
 fileIndex = 0
@@ -75,12 +82,20 @@ class meHandler(BaseHTTPRequestHandler):
             path = self.translate_path(self.path)
             print(path)
             if os.path.isfile(path):
-                with open(path, 'rb') as f:
-                    self.send_response(200)
-                    self.send_header("Content-type", 'audio/mpeg')
-                    self.send_header("Content-Length", str(os.fstat(f.fileno())[6]))
+                self.send_response(200)
+                self.send_header("Content-type", 'audio/mpeg')
+                if ffmpeg and path.lower().split('.')[-1] not in ['wav','mp3']:
                     self.end_headers()
-                    shutil.copyfileobj(f, self.wfile)
+                    pipe = subprocess.Popen(['ffmpeg', '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
+                    try:
+                        shutil.copyfileobj(pipe.stdout, self.wfile)
+                    finally:
+                        pipe.terminate()
+                else:
+                    with open(path, 'rb') as f:
+                        self.send_header("Content-Length", str(os.fstat(f.fileno())[6]))
+                        self.end_headers()
+                        shutil.copyfileobj(f, self.wfile)
             else:
                 self.send_response(404)
                 self.end_headers()
