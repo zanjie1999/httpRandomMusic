@@ -4,7 +4,7 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v2.1
+# v3.2
 
 import os, random, urllib, posixpath, shutil, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -82,15 +82,19 @@ class meHandler(BaseHTTPRequestHandler):
             print(path)
             if os.path.isfile(path):
                 self.send_response(200)
-                self.send_header("Content-type", 'audio/mpeg')
                 if ffmpeg and path.lower().split('.')[-1] not in ['wav','mp3']:
+                    self.send_header("Content-type", 'audio/wav')
+                    t = subprocess.getoutput('{} -i "{}" 2>&1 | {} Duration'.format(ffmpeg, path, 'findstr' if os.name == 'nt' else 'grep')).split()[1][:-1].split(':')
+                    self.send_header("Content-Length", str((float(t[0]) * 3600 + float(t[1]) * 60 + float(t[2])) * 176400))
                     self.end_headers()
                     pipe = subprocess.Popen([ffmpeg, '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
                     try:
                         shutil.copyfileobj(pipe.stdout, self.wfile)
                     finally:
+                        self.wfile.flush()
                         pipe.terminate()
                 else:
+                    self.send_header("Content-type", 'audio/mpeg')
                     with open(path, 'rb') as f:
                         self.send_header("Content-Length", str(os.fstat(f.fileno())[6]))
                         self.end_headers()
@@ -102,4 +106,4 @@ class meHandler(BaseHTTPRequestHandler):
 
 
 updateFileList()
-HTTPServer(("", port), meHandler).serve_forever()
+HTTPServer(("op", port), meHandler).serve_forever()
