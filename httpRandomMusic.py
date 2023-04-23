@@ -74,9 +74,11 @@ class meHandler(BaseHTTPRequestHandler):
             updateFileList()
             random.shuffle(fileList)
             self.return302(fileList[0])
+            fileIndex = 1
         elif self.path == '/frist':
             updateFileList()
             self.return302(fileList[0])
+            fileIndex = 1
         else:
             path = self.translate_path(self.path)
             print(path)
