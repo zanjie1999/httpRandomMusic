@@ -4,7 +4,7 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v3.2
+# v3.3
 
 import os, random, urllib, posixpath, shutil, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -13,7 +13,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 port = 65533
 
 # 存音乐的目录
-fileDir = '/data/音乐/' 
+fileDir = '/Users/sparkle/Music/网易云音乐'  
 
 # 实时转码需要依赖ffmpeg的路径 如果为空就不转码
 ffmpeg = 'ffmpeg'
@@ -24,7 +24,12 @@ fileIndex = 0
 def updateFileList():
     global fileList
     global fileIndex
-    os.chdir(fileDir)
+    try:
+        os.chdir(fileDir)
+    except Exception as e:
+        print(e)
+        print('ERROR: 请检查目录是否存在或是否有权限访问')
+        exit()
     fileIndex = 0
     # for i in os.listdir(fileDir):
     #     if i.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a']:
@@ -107,5 +112,7 @@ class meHandler(BaseHTTPRequestHandler):
 
 
 
+if os.system("nslookup op.lan"):
+    print('ERROR: 请将op.lan指向本机ip，否则小爱音箱可能无法访问')
 updateFileList()
-HTTPServer(("op", port), meHandler).serve_forever()
+HTTPServer(("", port), meHandler).serve_forever()
