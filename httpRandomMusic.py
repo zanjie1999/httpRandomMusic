@@ -112,7 +112,7 @@ class meHandler(BaseHTTPRequestHandler):
 
 
 
-if os.system("nslookup op.lan"):
-    print('ERROR: 请将op.lan指向本机ip，否则小爱音箱可能无法访问')
+if os.system("nslookup zyym.ie"):
+    print('ERROR: 请将zyym.ie指向本机ip，否则小爱音箱可能无法访问')
 updateFileList()
 HTTPServer(("", port), meHandler).serve_forever()
