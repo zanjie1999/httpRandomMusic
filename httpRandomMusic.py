@@ -24,20 +24,23 @@ fileIndex = 0
 def updateFileList():
     global fileList
     global fileIndex
+    fileList = []
+    fileIndex = 0
+    # 支持的音乐文件后缀
+    supported_exts = ['flac', 'mp3', 'wav', 'aac', 'm4a']
     try:
-        os.chdir(fileDir)
+        for root, dirs, files in os.walk(fileDir):
+            for file in files:
+                if file.lower().split('.')[-1] in supported_exts:
+                    full_path = os.path.join(root, file)
+                    fileList.append(full_path)
+        fileList.sort(key=lambda x: os.path.getmtime(x))
+        fileList = [i.replace(fileDir+'/', '') for i in fileList]
+        print(str(len(fileList)) + ' files')
     except Exception as e:
         print(e)
         print('ERROR: 请检查目录是否存在或是否有权限访问')
         exit()
-    fileIndex = 0
-    # for i in os.listdir(fileDir):
-    #     if i.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a']:
-    #         fileList.append(i)
-    fileList = list(filter(lambda x: x.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a'], os.listdir('.')))
-    fileList.sort(key=lambda x: os.path.getmtime(x))
-    fileList.reverse()
-    print(str(len(fileList)) + ' files')
 
 
 class meHandler(BaseHTTPRequestHandler):
