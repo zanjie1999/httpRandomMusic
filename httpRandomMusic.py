@@ -4,7 +4,7 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v3.3
+# v4.0
 
 import os, random, urllib, posixpath, shutil, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -21,26 +21,29 @@ ffmpeg = 'ffmpeg'
 
 fileList = None
 fileIndex = 0
-def updateFileList():
+def updateFileList(search=''):
     global fileList
     global fileIndex
-    fileList = []
-    fileIndex = 0
-    # 支持的音乐文件后缀
-    supported_exts = ['flac', 'mp3', 'wav', 'aac', 'm4a']
     try:
-        for root, dirs, files in os.walk(fileDir):
-            for file in files:
-                if file.lower().split('.')[-1] in supported_exts:
-                    full_path = os.path.join(root, file)
-                    fileList.append(full_path)
-        fileList.sort(key=lambda x: os.path.getmtime(x))
-        fileList = [i.replace(fileDir+'/', '') for i in fileList]
-        print(str(len(fileList)) + ' files')
+        os.chdir(fileDir)
     except Exception as e:
         print(e)
         print('ERROR: 请检查目录是否存在或是否有权限访问')
         exit()
+    fileIndex = 0
+    # fileList = list(filter(lambda x: x.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a'], os.listdir('.')))
+    fileList = []
+    for path, _, files in os.walk('.'):
+        for f in files:
+            if f.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a']:
+                fpath = os.path.join(path, f)[2:]
+                # 搜索关键词可以是文件夹名也可以是文件名
+                if not search or search in fpath:
+                    fileList.append(fpath)
+    fileList.sort(key=lambda x: os.path.getmtime(x))
+    fileList.reverse()
+    print(str(len(fileList)) + ' files')
+    print(fileList[1])
 
 
 class meHandler(BaseHTTPRequestHandler):
@@ -69,6 +72,32 @@ class meHandler(BaseHTTPRequestHandler):
         self.send_header('Location', '/' + urllib.parse.quote(filename))
         self.end_headers()
 
+    def play(self, path):
+        print(path)
+        if os.path.isfile(path):
+            self.send_response(200)
+            if ffmpeg and path.lower().split('.')[-1] not in ['wav','mp3']:
+                self.send_header("Content-type", 'audio/wav')
+                t = subprocess.getoutput('{} -i "{}" 2>&1 | {} Duration'.format(ffmpeg, path, 'findstr' if os.name == 'nt' else 'grep')).split()[1][:-1].split(':')
+                # 根据码率计算文件总大小，让RTOS的音响显示正确的进度条
+                self.send_header("Content-Length", str((float(t[0]) * 3600 + float(t[1]) * 60 + float(t[2])) * 176400))
+                self.end_headers()
+                pipe = subprocess.Popen([ffmpeg, '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
+                try:
+                    shutil.copyfileobj(pipe.stdout, self.wfile)
+                finally:
+                    self.wfile.flush()
+                    pipe.terminate()
+            else:
+                self.send_header("Content-type", 'audio/mpeg')
+                with open(path, 'rb') as f:
+                    self.send_header("Content-Length", str(os.fstat(f.fileno())[6]))
+                    self.end_headers()
+                    shutil.copyfileobj(f, self.wfile)
+        else:
+            self.send_response(404)
+            self.end_headers()
+
     def do_GET(self):
         global fileList
         global fileIndex
@@ -79,39 +108,24 @@ class meHandler(BaseHTTPRequestHandler):
             if fileIndex >= len(fileList):
                 fileIndex = 0
         elif self.path == '/random':
+            # 随机播放
             updateFileList()
             random.shuffle(fileList)
             self.return302(fileList[0])
             fileIndex = 1
         elif self.path == '/frist':
+            # 从头开始播放
             updateFileList()
+            self.return302(fileList[0])
+            fileIndex = 1
+        elif self.path.startswith('/s/'):
+            # 搜索
+            updateFileList(self.path[3:])
             self.return302(fileList[0])
             fileIndex = 1
         else:
             path = self.translate_path(self.path)
-            print(path)
-            if os.path.isfile(path):
-                self.send_response(200)
-                if ffmpeg and path.lower().split('.')[-1] not in ['wav','mp3']:
-                    self.send_header("Content-type", 'audio/wav')
-                    t = subprocess.getoutput('{} -i "{}" 2>&1 | {} Duration'.format(ffmpeg, path, 'findstr' if os.name == 'nt' else 'grep')).split()[1][:-1].split(':')
-                    self.send_header("Content-Length", str((float(t[0]) * 3600 + float(t[1]) * 60 + float(t[2])) * 176400))
-                    self.end_headers()
-                    pipe = subprocess.Popen([ffmpeg, '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
-                    try:
-                        shutil.copyfileobj(pipe.stdout, self.wfile)
-                    finally:
-                        self.wfile.flush()
-                        pipe.terminate()
-                else:
-                    self.send_header("Content-type", 'audio/mpeg')
-                    with open(path, 'rb') as f:
-                        self.send_header("Content-Length", str(os.fstat(f.fileno())[6]))
-                        self.end_headers()
-                        shutil.copyfileobj(f, self.wfile)
-            else:
-                self.send_response(404)
-                self.end_headers()
+            self.play(path)
 
 
 
