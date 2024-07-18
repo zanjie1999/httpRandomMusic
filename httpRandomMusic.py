@@ -4,7 +4,7 @@
 # 给小爱音箱用于播放nas的音乐
 # 手搓了个简易http服务
 # Sparkle
-# v4.0
+# v4.1
 
 import os, random, urllib, posixpath, shutil, subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -43,7 +43,6 @@ def updateFileList(search=''):
     fileList.sort(key=lambda x: os.path.getmtime(x))
     fileList.reverse()
     print(str(len(fileList)) + ' files')
-    print(fileList[1])
 
 
 class meHandler(BaseHTTPRequestHandler):
