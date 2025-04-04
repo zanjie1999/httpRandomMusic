@@ -60,3 +60,10 @@ Q:怎么放不出声音？
 
 Q:群晖怎么用？  
 A:在软件中心安装Python3，如果需要ffmpeg实时转码还需要安装VideoStation，然后将本程序放到一个你喜欢的地方，在计划任务添加一个开机启动，命令是`python3 你的路径/httpRandomMusic.py`，然后手动点击一下运行，就可以用了
+
+
+### 协议 咩License
+使用此项目视为您已阅读并同意遵守 [此LICENSE](https://github.com/zanjie1999/LICENSE)   
+Using this project is deemed to indicate that you have read and agreed to abide by [this LICENSE](https://github.com/zanjie1999/LICENSE)   
+
+
